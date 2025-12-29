@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* FORM INPUTS */
+  .label {
+    @apply block text-xs font-bold text-slate-500 uppercase mb-1;
+  }
+  .form-input, .form-select {
+    @apply w-full border border-slate-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition shadow-sm;
+  }
+
+  /* BUTTONS */
+  .btn-base {
+    @apply px-4 py-2 rounded-md font-medium transition shadow-sm flex items-center justify-center gap-2 disabled:bg-slate-300 disabled:cursor-not-allowed;
+  }
+  .btn-primary { @apply btn-base bg-blue-600 text-white hover:bg-blue-700; }
+  .btn-success { @apply btn-base bg-green-600 text-white hover:bg-green-700; }
+
+  /* BADGES */
+  .badge { @apply px-2 py-1 rounded-full text-xs font-bold; }
+  .badge-blue { @apply badge bg-blue-100 text-blue-800; }
+  .badge-purple { @apply badge bg-purple-100 text-purple-700; }
+  .badge-green { @apply badge bg-green-100 text-green-700; }
+
+  /* UTILS */
+  .loader {
+    @apply w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin;
+  }
+
+  /* ... class form-input, btn-primary, dll (yang lama biarkan) ... */
+
+  /* TAMBAHAN BARU: TAB PILLS */
+  .tab-pill {
+    @apply px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 hover:bg-slate-50 capitalize;
+  }
+  .tab-pill.active {
+    @apply bg-blue-600 text-white shadow;
+  }
+
+  /* TAMBAHAN BARU: BADGE MERAH */
+  .badge-red { @apply badge bg-red-100 text-red-700; }
+  .nav-link {
+  @apply text-sm text-gray-400 px-3 py-4 transition-colors duration-200 relative font-medium;
+}
+
+/* Hover State */
+.nav-link:hover {
+  @apply text-gray-200;
+}
+
+/* ACTIVE STATE: (Kunci Desain Ini) */
+/* Saat menu aktif, teks jadi putih dan ada garis putih di bawahnya */
+.router-link-active {
+  @apply text-white;
+}
+
+.router-link-active::after {
+  content: "";
+  @apply absolute bottom-0 left-0 w-full h-[2px] bg-white;
+  /* Animasi halus saat muncul */
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+}
