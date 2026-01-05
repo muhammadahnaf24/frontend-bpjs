@@ -60,7 +60,6 @@ const fetchLaporanBPJS = () => {
   );
 };
 
-// ================= COMPUTED =================
 // 1. Sorting Data
 const sortedList = computed(() => {
   if (!Array.isArray(listLaporanBPJS.value)) return [];
@@ -75,6 +74,25 @@ const sortedList = computed(() => {
 const paginatedList = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return sortedList.value.slice(start, start + itemsPerPage);
+});
+
+const totalT5 = computed(() => {
+  if (!Array.isArray(listLaporanBPJS.value)) return 0;
+
+  return listLaporanBPJS.value.filter((item) => item.task5).length;
+});
+
+const totalT5Gagal = computed(() => {
+  if (!Array.isArray(listLaporanBPJS.value)) return 0;
+
+  return listLaporanBPJS.value.filter((item) => !item.task5).length;
+});
+
+const persentaseT5 = computed(() => {
+  const total = listLaporanBPJS.value.length;
+  if (total === 0) return 0;
+
+  return ((totalT5.value / total) * 100).toFixed(1);
 });
 </script>
 
@@ -319,6 +337,125 @@ const paginatedList = computed(() => {
         :total-items="sortedList.length"
         :items-per-page="itemsPerPage"
       />
+    </div>
+    <div class="mt-8">
+      <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <svg
+          class="w-6 h-6 text-slate-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+        Performa Farmasi (Task 5)
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between hover:shadow-md transition-shadow"
+        >
+          <div>
+            <p class="text-sm font-medium text-slate-500 mb-1">T5 Berhasil</p>
+            <p class="text-3xl font-extrabold text-slate-800">{{ totalT5 }}</p>
+            <p class="text-xs text-green-600 font-medium mt-1">
+              Pasien Selesai & Ada Obat
+            </p>
+          </div>
+          <div
+            class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between hover:shadow-md transition-shadow"
+        >
+          <div>
+            <p class="text-sm font-medium text-slate-500 mb-1">
+              T5 Gagal / Missed
+            </p>
+            <p class="text-3xl font-extrabold text-slate-800">
+              {{ totalT5Gagal }}
+            </p>
+          </div>
+          <div
+            class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="text-sm font-medium text-slate-500 mb-1">
+                Success Rate
+              </p>
+              <p class="text-3xl font-extrabold text-blue-700">
+                {{ persentaseT5 }}%
+              </p>
+            </div>
+            <div
+              class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <div class="w-full bg-slate-100 rounded-full h-2.5 mt-2">
+            <div
+              class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-out"
+              :style="{ width: persentaseT5 + '%' }"
+            ></div>
+          </div>
+          <p class="text-xs text-slate-400 mt-2 text-right">Target RS: 100%</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
