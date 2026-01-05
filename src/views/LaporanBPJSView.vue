@@ -12,6 +12,7 @@ const message = ref("");
 const currentPage = ref(1);
 const itemsPerPage = 10;
 
+const filterStatus = ref("all");
 // Data
 const listLaporanBPJS = ref([]);
 
@@ -61,19 +62,35 @@ const fetchLaporanBPJS = () => {
 };
 
 // 1. Sorting Data
-const sortedList = computed(() => {
+const filteredAndSortedList = computed(() => {
   if (!Array.isArray(listLaporanBPJS.value)) return [];
 
-  return [...listLaporanBPJS.value].sort((a, b) => {
+  // 1. Filter Data
+  let result = [...listLaporanBPJS.value];
+
+  if (filterStatus.value === "success") {
+    result = result.filter((item) => item.task5);
+  } else if (filterStatus.value === "failed") {
+    result = result.filter((item) => !item.task5);
+  }
+
+  // 2. Sort Data
+  return result.sort((a, b) => {
     const tglA = a.tglSep || a.tglKunjungan || a.tanggal || 0;
     const tglB = b.tglSep || b.tglKunjungan || b.tanggal || 0;
     return new Date(tglB) - new Date(tglA);
   });
 });
 
+// Perbarui paginatedList untuk menggunakan hasil filter di atas
 const paginatedList = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
-  return sortedList.value.slice(start, start + itemsPerPage);
+  return filteredAndSortedList.value.slice(start, start + itemsPerPage);
+});
+
+import { watch } from "vue";
+watch(filterStatus, () => {
+  currentPage.value = 1;
 });
 
 const totalT5 = computed(() => {
@@ -128,6 +145,15 @@ const persentaseT5 = computed(() => {
               type="date"
               class="form-input"
             />
+          </div>
+
+          <div class="md:col-span-1">
+            <label class="label">Filter Status T5</label>
+            <select v-model="filterStatus" class="form-input bg-white">
+              <option value="all">Semua Data</option>
+              <option value="success">T5 Berhasil (✓)</option>
+              <option value="failed">T5 Gagal (-)</option>
+            </select>
           </div>
 
           <div class="md:col-span-1 md:col-start-4">
@@ -334,7 +360,7 @@ const persentaseT5 = computed(() => {
 
       <BasePagination
         v-model="currentPage"
-        :total-items="sortedList.length"
+        :total-items="filteredAndSortedList.length"
         :items-per-page="itemsPerPage"
       />
     </div>
