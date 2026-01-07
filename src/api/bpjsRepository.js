@@ -46,4 +46,8 @@ export default {
   postAntrean(tglAwal, tglAkhir) {
     return apiClient.post(`/bpjs/antrean/${tglAwal}/${tglAkhir}`);
   },
+
+  batalAntrean(payload) {
+    return apiClient.post("/bpjs/batal", payload);
+  },
 };

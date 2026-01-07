@@ -18,16 +18,15 @@ const formKartu = ref({
   bulan: new Date().getMonth() + 1,
   tahun: new Date().getFullYear(),
   noKartu: "",
-  filter: "2", // Default: Tgl Rencana
+  filter: "2",
 });
 
 const formTanggal = ref({
   tglAwal: new Date().toISOString().slice(0, 10),
   tglAkhir: new Date().toISOString().slice(0, 10),
-  filter: "2", // Default: Tgl Rencana
+  filter: "2",
 });
 
-// COMPUTED: Cek Filter mana yang sedang aktif
 const currentFilter = computed(() => {
   if (activeTab.value === "kartu") {
     return formKartu.value.filter;
@@ -36,7 +35,6 @@ const currentFilter = computed(() => {
   }
 });
 
-// COMPUTED: 1. SORTING SEMUA DATA (TANPA LIMIT)
 const sortedList = computed(() => {
   return [...listRencana.value].sort((a, b) => {
     let dateA, dateB;
@@ -47,23 +45,20 @@ const sortedList = computed(() => {
       dateA = new Date(a.tglRencanaKontrol);
       dateB = new Date(b.tglRencanaKontrol);
     }
-    return dateB - dateA; // Descending (Terbaru diatas)
+    return dateB - dateA;
   });
 });
 
-// COMPUTED: 2. TOTAL HALAMAN
 const totalPages = computed(() => {
   return Math.ceil(sortedList.value.length / itemsPerPage);
 });
 
-// COMPUTED: 3. DATA YANG DITAMPILKAN PER HALAMAN (SLICE)
 const paginatedList = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
   return sortedList.value.slice(start, end);
 });
 
-// FUNCTIONS PAGINATION
 const nextPage = () => {
   if (currentPage.value < totalPages.value) currentPage.value++;
 };
@@ -71,7 +66,6 @@ const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--;
 };
 
-// FUNCTIONS API
 const cariData = async () => {
   loading.value = true;
   listRencana.value = [];

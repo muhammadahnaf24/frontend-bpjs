@@ -5,17 +5,17 @@ import { formatDateIndo } from "../utils/formatters";
 import BasePagination from "../components/BasePagination.vue";
 
 // ================= STATE =================
-const activeTab = ref("kunjungan"); // 'kunjungan' | 'histori'
+const activeTab = ref("kunjungan");
 const loading = ref(false);
 const message = ref("");
 
 // Pagination State
 const currentPage = ref(1);
-const itemsPerPage = 10; // Sesuaikan jumlah baris per halaman
+const itemsPerPage = 10;
 
 // Data State
 const tglMonitor = ref(new Date().toISOString().slice(0, 10));
-const jenisLayanan = ref("2"); // 1: Inap, 2: Jalan
+const jenisLayanan = ref("2");
 const listKunjungan = ref([]);
 
 const formHistori = ref({
@@ -29,7 +29,7 @@ const listHistori = ref([]);
 const handleApiCall = async (apiFunc, onSuccess) => {
   loading.value = true;
   message.value = "";
-  currentPage.value = 1; // Reset halaman ke 1 saat cari data baru
+  currentPage.value = 1;
   try {
     const res = await apiFunc();
     onSuccess(res);
@@ -50,7 +50,6 @@ const fetchKunjungan = () => {
   handleApiCall(
     () => bpjsRepo.getMonitoringKunjungan(tglMonitor.value, jenisLayanan.value),
     (res) => {
-      // Menangani variasi struktur response BPJS
       const data = res.data.data || res.data.response?.sep || [];
       listKunjungan.value = Array.isArray(data) ? data : [];
 
@@ -84,33 +83,28 @@ const fetchHistori = () => {
 
 // ================= COMPUTED & LOGIC =================
 
-// 1. Pilih List Data Berdasarkan Tab Aktif
 const currentList = computed(() => {
   return activeTab.value === "kunjungan"
     ? listKunjungan.value
     : listHistori.value;
 });
 
-// 2. Sorting Data (Terbaru Paling Atas)
 const sortedList = computed(() => {
   const list = currentList.value;
   if (!Array.isArray(list)) return [];
 
   return [...list].sort((a, b) => {
-    // Kunjungan pakai 'tglPlgSep' atau 'tglSep', Histori pakai 'tglSep'
     const dateA = new Date(a.tglSep || a.tglPlgSep || 0);
     const dateB = new Date(b.tglSep || b.tglPlgSep || 0);
     return dateB - dateA;
   });
 });
 
-// 3. Pagination Slicing
 const paginatedList = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return sortedList.value.slice(start, start + itemsPerPage);
 });
 
-// 4. Switch Tab Handler (Reset Data & UI)
 const switchTab = (tabName) => {
   activeTab.value = tabName;
   message.value = "";
