@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Sesuaikan port backend kamu (misal 3000)
 const apiClient = axios.create({
   baseURL: "http://localhost:3000/api",
   headers: {

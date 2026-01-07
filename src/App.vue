@@ -9,7 +9,9 @@ import Navbar from "./components/Navbar.vue";
     <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
-          <component :is="Component" />
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
         </transition>
       </router-view>
     </main>

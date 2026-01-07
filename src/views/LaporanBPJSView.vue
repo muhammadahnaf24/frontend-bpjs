@@ -122,7 +122,6 @@ const persentaseT5 = computed(() => {
 
   if (totalReal <= 0) return 0;
 
-  // Rumus: (Jumlah T5 / Total Real) * 100
   return ((totalT5.value / totalReal) * 100).toFixed(1);
 });
 
@@ -645,7 +644,6 @@ const handleCancelBooking = async (item) => {
               :style="{ width: persentaseT5 + '%' }"
             ></div>
           </div>
-          <p class="text-xs text-slate-400 mt-2 text-right">Target RS: 100%</p>
         </div>
       </div>
     </div>
