@@ -1,29 +1,22 @@
 <script setup>
 import { computed } from "vue";
 
-// Menerima data dari Parent Component
 const props = defineProps({
   modelValue: {
-    // Ini untuk v-model (Current Page)
     type: Number,
     required: true,
   },
   totalItems: {
-    // Total jumlah data (sortedList.length)
     type: Number,
     required: true,
   },
   itemsPerPage: {
-    // Jumlah data per halaman
     type: Number,
     default: 10,
   },
 });
 
-// Mengirim event ke Parent saat halaman berubah
 const emit = defineEmits(["update:modelValue"]);
-
-// --- COMPUTED LOGIC (Pindahan dari page lama) ---
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(props.totalItems / props.itemsPerPage))

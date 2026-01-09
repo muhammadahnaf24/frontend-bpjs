@@ -2,18 +2,16 @@
 import { ref, computed } from "vue";
 import bpjsRepo from "../api/bpjsRepository";
 import { formatDateIndo } from "../utils/formatters";
+import BasePagination from "../components/BasePagination.vue";
 
-// STATE
 const activeTab = ref("kartu");
 const loading = ref(false);
 const message = ref("");
 const listRencana = ref([]);
 
-// PAGINATION STATE
 const currentPage = ref(1);
 const itemsPerPage = 15;
 
-// FORM STATE
 const formKartu = ref({
   bulan: new Date().getMonth() + 1,
   tahun: new Date().getFullYear(),
@@ -27,44 +25,27 @@ const formTanggal = ref({
   filter: "2",
 });
 
-const currentFilter = computed(() => {
-  if (activeTab.value === "kartu") {
-    return formKartu.value.filter;
-  } else {
-    return formTanggal.value.filter;
-  }
-});
-
 const sortedList = computed(() => {
-  return [...listRencana.value].sort((a, b) => {
-    let dateA, dateB;
-    if (currentFilter.value === "1") {
-      dateA = new Date(a.tglTerbitKontrol || a.tglEntri || a.tglTerbit);
-      dateB = new Date(b.tglTerbitKontrol || b.tglEntri || b.tglTerbit);
-    } else {
-      dateA = new Date(a.tglRencanaKontrol);
-      dateB = new Date(b.tglRencanaKontrol);
-    }
+  const list = listRencana.value;
+  if (!Array.isArray(list)) return [];
+
+  return [...list].sort((a, b) => {
+    const dateA = new Date(a.tglRencanaKontrol || a.tglTerbitKontrol || 0);
+    const dateB = new Date(b.tglRencanaKontrol || b.tglTerbitKontrol || 0);
     return dateB - dateA;
   });
 });
 
-const totalPages = computed(() => {
-  return Math.ceil(sortedList.value.length / itemsPerPage);
+const currentFilter = computed(() => {
+  return activeTab.value === "kartu"
+    ? formKartu.value.filter
+    : formTanggal.value.filter;
 });
 
 const paginatedList = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return sortedList.value.slice(start, end);
+  return sortedList.value.slice(start, start + itemsPerPage);
 });
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++;
-};
-const prevPage = () => {
-  if (currentPage.value > 1) currentPage.value--;
-};
 
 const cariData = async () => {
   loading.value = true;
@@ -93,7 +74,10 @@ const cariData = async () => {
     }
 
     listRencana.value = res.data.response?.list || [];
-    if (!listRencana.value.length) message.value = "Data tidak ditemukan.";
+
+    if (!listRencana.value.length) {
+      message.value = "Data tidak ditemukan.";
+    }
   } catch (err) {
     console.error(err);
     message.value =
@@ -124,11 +108,7 @@ const cariData = async () => {
         <button
           v-for="tab in ['kartu', 'tanggal']"
           :key="tab"
-          @click="
-            activeTab = tab;
-            listRencana = [];
-            message = '';
-          "
+          @click="activeTab = tab"
           class="px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 capitalize"
           :class="
             activeTab === tab
@@ -311,43 +291,11 @@ const cariData = async () => {
         </table>
       </div>
 
-      <div
-        v-if="sortedList.length > 0"
-        class="bg-slate-50 border-t border-slate-200 p-4 flex items-center justify-between"
-      >
-        <div class="text-sm text-slate-500">
-          Menampilkan
-          <span class="font-bold text-slate-800"
-            >{{ (currentPage - 1) * itemsPerPage + 1 }} -
-            {{ Math.min(currentPage * itemsPerPage, sortedList.length) }}</span
-          >
-          dari
-          <span class="font-bold text-slate-800">{{ sortedList.length }}</span>
-          data
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            @click="prevPage"
-            :disabled="currentPage === 1"
-            class="px-4 py-2 bg-white border border-slate-300 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Sebelumnya
-          </button>
-          <div
-            class="px-4 py-2 bg-slate-200 rounded text-sm font-bold text-slate-700"
-          >
-            {{ currentPage }}
-          </div>
-          <button
-            @click="nextPage"
-            :disabled="currentPage === totalPages"
-            class="px-4 py-2 bg-white border border-slate-300 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Selanjutnya
-          </button>
-        </div>
-      </div>
+      <BasePagination
+        v-model="currentPage"
+        :total-items="sortedList.length"
+        :items-per-page="itemsPerPage"
+      />
     </div>
   </div>
 </template>

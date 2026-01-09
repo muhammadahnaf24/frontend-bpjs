@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from "vue";
 
-// State untuk mengontrol buka/tutup menu di HP
 const isMenuOpen = ref(false);
 </script>
 
@@ -27,6 +26,7 @@ const isMenuOpen = ref(false);
             <router-link to="/laporan-bpjs" class="nav-link">
               Laporan BPJS
             </router-link>
+            <router-link to="/chart" class="nav-link"> Chart </router-link>
           </div>
         </div>
 
@@ -100,6 +100,13 @@ const isMenuOpen = ref(false);
           @click="isMenuOpen = false"
         >
           Laporan BPJS
+        </router-link>
+        <router-link
+          to="/chart"
+          class="mobile-link"
+          @click="isMenuOpen = false"
+        >
+          Chart
         </router-link>
       </div>
     </div>

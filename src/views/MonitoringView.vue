@@ -4,16 +4,13 @@ import bpjsRepo from "../api/bpjsRepository";
 import { formatDateIndo } from "../utils/formatters";
 import BasePagination from "../components/BasePagination.vue";
 
-// ================= STATE =================
 const activeTab = ref("kunjungan");
 const loading = ref(false);
 const message = ref("");
 
-// Pagination State
 const currentPage = ref(1);
 const itemsPerPage = 10;
 
-// Data State
 const tglMonitor = ref(new Date().toISOString().slice(0, 10));
 const jenisLayanan = ref("2");
 const listKunjungan = ref([]);
@@ -25,7 +22,6 @@ const formHistori = ref({
 });
 const listHistori = ref([]);
 
-// ================= HELPER API =================
 const handleApiCall = async (apiFunc, onSuccess) => {
   loading.value = true;
   message.value = "";
@@ -44,7 +40,6 @@ const handleApiCall = async (apiFunc, onSuccess) => {
   }
 };
 
-// ================= FETCH FUNCTIONS =================
 const fetchKunjungan = () => {
   listKunjungan.value = [];
   handleApiCall(
@@ -80,8 +75,6 @@ const fetchHistori = () => {
     }
   );
 };
-
-// ================= COMPUTED & LOGIC =================
 
 const currentList = computed(() => {
   return activeTab.value === "kunjungan"

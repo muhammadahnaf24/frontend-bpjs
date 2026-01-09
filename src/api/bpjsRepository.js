@@ -41,12 +41,15 @@ export default {
     );
   },
 
-  // 6. POST Antrean (Report)
   postAntrean(tglAwal, tglAkhir) {
     return apiClient.post(`/bpjs/antrean/${tglAwal}/${tglAkhir}`);
   },
 
   batalAntrean(payload) {
     return apiClient.post("/bpjs/batal", payload);
+  },
+
+  getDokter() {
+    return apiClient.get(`/bpjs/dokter`);
   },
 };
