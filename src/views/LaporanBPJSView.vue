@@ -101,34 +101,78 @@ const persentaseT5 = computed(() => {
   return ((totalT5.value / totalReal) * 100).toFixed(1);
 });
 
-const handleCancelBooking = async (item) => {
-  const result = await Swal.fire({
-    title: "Batalkan Antrean?",
-    text: `Kode Booking: ${item.kodebooking}. Data tidak ditemukan di RS.`,
+const listBisaBatal = computed(() => {
+  return filteredAndSortedList.value.filter(
+    (item) =>
+      (!item.task5 || item.task5 === "") &&
+      item.status_validasi === "TIDAK" &&
+      item.status !== "Batal"
+  );
+});
+
+const handleCancelAll = async () => {
+  const targets = listBisaBatal.value;
+  const total = targets.length;
+
+  if (total === 0) return;
+
+  const confirmResult = await Swal.fire({
+    title: "PEMBATALAN MASSAL",
+    html: `
+      Anda akan membatalkan <b>${total}</b> antrean sekaligus.<br/>
+      <span class="text-sm text-red-500 italic">Hanya data T5 Kosong & Tidak Ada di DB yang akan diproses.</span>
+    `,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     cancelButtonColor: "#3085d6",
-    confirmButtonText: "Ya, Batalkan!",
+    confirmButtonText: `Ya, Batalkan ${total} Data!`,
     cancelButtonText: "Batal",
   });
 
-  if (!result.isConfirmed) return;
+  if (!confirmResult.isConfirmed) return;
 
-  Swal.fire({ title: "Memproses...", didOpen: () => Swal.showLoading() });
+  let successCount = 0;
+  let failCount = 0;
 
-  try {
-    await bpjsRepo.batalAntrean({
-      kodebooking: item.kodebooking,
-      keterangan: "Batal Kunjungan",
-    });
+  Swal.fire({
+    title: "Memproses...",
+    html: "Mohon tunggu, sedang menghubungi server BPJS...",
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
 
-    Swal.fire("Berhasil!", "Antrean telah dibatalkan di BPJS.", "success");
+  // Loop Eksekusi (Sequential agar aman dari rate limit)
+  for (let i = 0; i < total; i++) {
+    const item = targets[i];
 
-    fetchLaporanBPJS();
-  } catch (err) {
-    Swal.fire("Gagal", err.response?.data?.message || err.message, "error");
+    Swal.getHtmlContainer().innerHTML = `
+      Memproses: <b>${item.kodebooking}</b><br/>
+      <span class="text-sm">Data ke ${i + 1} dari ${total}</span>
+    `;
+
+    try {
+      await bpjsRepo.batalAntrean({
+        kodebooking: item.kodebooking,
+        keterangan: "Batal Sistem - Data Invalid/Ghosting",
+      });
+      successCount++;
+    } catch (err) {
+      console.error(`Gagal batal ${item.kodebooking}`, err);
+      failCount++;
+    }
   }
+
+  await Swal.fire({
+    title: "Proses Selesai",
+    html: `
+      Berhasil: <b class="text-green-600">${successCount}</b><br/>
+      Gagal: <b class="text-red-600">${failCount}</b>
+    `,
+    icon: failCount === 0 ? "success" : "warning",
+  });
+
+  fetchLaporanBPJS();
 };
 </script>
 
@@ -236,7 +280,6 @@ const handleCancelBooking = async (item) => {
                 <th class="px-4 py-3 bg-slate-800">Waktu</th>
                 <th class="px-4 py-3 bg-slate-800">Status & Task</th>
                 <th class="px-4 py-3 bg-slate-800 text-center">Validasi DB</th>
-                <th class="px-4 py-3 bg-slate-800 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -257,11 +300,6 @@ const handleCancelBooking = async (item) => {
                       class="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-bold"
                     >
                       {{ item.sumberdata }}
-                    </span>
-                    <span
-                      class="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px]"
-                    >
-                      {{ formatDateIndo(item.tanggal) }}
                     </span>
                   </div>
                 </td>
@@ -309,9 +347,6 @@ const handleCancelBooking = async (item) => {
                     <span class="font-mono text-slate-700">
                       {{ formatTimestamp(item.estimasidilayani) }}
                     </span>
-                  </div>
-                  <div>
-                    <span class="badge-purple">{{ item.jampraktek }}</span>
                   </div>
                 </td>
 
@@ -420,39 +455,6 @@ const handleCancelBooking = async (item) => {
                     <span class="text-slate-300 font-bold text-xl">-</span>
                   </div>
                 </td>
-
-                <td class="px-4 py-3 align-top text-center">
-                  <button
-                    v-if="
-                      (!item.task5 || item.task5 === '') &&
-                      item.status_validasi === 'TIDAK'
-                    "
-                    @click="handleCancelBooking(item)"
-                    class="group flex items-center justify-center w-full gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-md border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-200"
-                    title="Batalkan Antrean di BPJS"
-                  >
-                    <svg
-                      class="w-4 h-4 transition-transform group-hover:scale-110"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </button>
-
-                  <div
-                    v-else-if="item.status_validasi === 'ADA'"
-                    class="text-xs text-slate-400 italic"
-                  ></div>
-
-                  <div v-else class="text-center text-slate-300">-</div>
-                </td>
               </tr>
 
               <tr v-if="!paginatedList.length && !loading">
@@ -486,6 +488,57 @@ const handleCancelBooking = async (item) => {
           :total-items="filteredAndSortedList.length"
           :items-per-page="itemsPerPage"
         />
+      </div>
+
+      <div
+        v-if="listBisaBatal.length > 0"
+        class="px-6 py-4 bg-red-50 border-b border-red-100 flex flex-col md:flex-row items-center justify-between gap-4 mt-5"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-red-100 rounded-full text-red-600">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-red-800 font-bold text-sm">
+              Terdeteksi Data Belum Dilayani
+            </h3>
+            <p class="text-red-600 text-xs">
+              Ditemukan <b>{{ listBisaBatal.length }}</b> Data
+            </p>
+          </div>
+        </div>
+
+        <button
+          @click="handleCancelAll"
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg shadow-md transition-colors flex items-center gap-2"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+          Batalkan Semua ({{ listBisaBatal.length }})
+        </button>
       </div>
 
       <div class="mt-8">
