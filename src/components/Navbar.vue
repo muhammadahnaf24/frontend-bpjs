@@ -26,7 +26,9 @@ const isMenuOpen = ref(false);
             <router-link to="/laporan-bpjs" class="nav-link">
               Laporan BPJS
             </router-link>
-            <router-link to="/chart" class="nav-link"> Chart </router-link>
+            <router-link to="/grafik" class="nav-link">
+              Grafik Gagal
+            </router-link>
           </div>
         </div>
 
@@ -102,11 +104,11 @@ const isMenuOpen = ref(false);
           Laporan BPJS
         </router-link>
         <router-link
-          to="/chart"
+          to="/Grafik"
           class="mobile-link"
           @click="isMenuOpen = false"
         >
-          Chart
+          Grafik Gagal
         </router-link>
       </div>
     </div>

@@ -3,7 +3,9 @@ import { ref, computed, watch } from "vue";
 import { formatDateIndo, formatTimestamp } from "../utils/formatters";
 import BasePagination from "./BasePagination.vue";
 import * as XLSX from "xlsx";
+import { useDokterStore } from "../stores/dokterStore";
 
+const dokterStore = useDokterStore();
 const props = defineProps({
   dataList: {
     type: Array,
@@ -66,26 +68,44 @@ watch([filterT5, filterDb, () => props.dataList], () => {
 const exportToExcel = () => {
   if (filteredAndSortedList.value.length === 0) return;
 
-  const dataToExport = filteredAndSortedList.value.map((item) => ({
-    "Kode Booking": item.kodebooking,
-    "No Antrean": item.noantrean,
-    "No Referensi": item.nomorreferensi,
-    Tanggal: formatDateIndo(item.tanggal),
-    Poli: item.kodepoli,
-    Dokter: item.namadokter || item.kodedokter,
-    "Status BPJS": item.status,
-    "Validasi RS": item.status_validasi,
-    "Task 1": item.task1 ? formatTimestamp(item.task1) : "-",
-    "Task 5": item.task5 ? formatTimestamp(item.task5) : "-",
-    "Task 7": item.task7 ? formatTimestamp(item.task7) : "-",
-  }));
+  const dataToExport = filteredAndSortedList.value.map((item) => {
+    const realDoctorName =
+      item.namadokter ||
+      dokterStore.getNamaDokter(item.kodedokter) ||
+      item.kodedokter ||
+      "Tanpa Nama";
+
+    return {
+      "Nama Dokter": realDoctorName,
+      "Kode Dokter": item.kodedokter,
+      "No Antrean": item.noantrean,
+      "No Referensi": item.nomorreferensi,
+      "Dibuat Pada": formatTimestamp(item.createdtime),
+      "Kode Booking": item.kodebooking,
+      "No Rekam Medis": item.norekammedis,
+      Tanggal: formatDateIndo(item.tanggal),
+      Poli: item.kodepoli,
+      "Sumber Data": item.sumberdata,
+      "Status BPJS": item.status,
+      "Validasi RS": item.status_validasi,
+      "Task 1": item.task1 ? item.task1 : "-",
+      "Task 2": item.task2 ? item.task2 : "-",
+      "Task 3": item.task3 ? item.task3 : "-",
+      "Task 4": item.task4 ? item.task5 : "-",
+      "Task 6": item.task6 ? item.task6 : "-",
+      "Task 7": item.task7 ? item.task7 : "-",
+    };
+  });
+
+  let namaDokter = dataToExport[0]?.["Nama Dokter"] || "Dokter";
+  namaDokter = namaDokter.trim();
 
   const worksheet = XLSX.utils.json_to_sheet(dataToExport);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Data Pasien");
 
   const timestamp = new Date().toISOString().slice(0, 19).replace(/[-T:]/g, "");
-  const fileName = `${props.exportFileName}_$_${timestamp}.xlsx`;
+  const fileName = `${props.exportFileName} - ${namaDokter} - ${timestamp}.xlsx`;
 
   XLSX.writeFile(workbook, fileName);
 };
